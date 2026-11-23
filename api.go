@@ -53,7 +53,13 @@ func (s *Server) Routes() http.Handler {
 		_, _ = w.Write([]byte(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#4f46e5"/><text x="50" y="68" font-size="52" text-anchor="middle" fill="#fff" font-family="sans-serif">W</text></svg>`))
 	})
 	staticSub, _ := fs.Sub(webFS, "web")
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticSub))))
+	staticSrv := http.StripPrefix("/static/", http.FileServer(http.FS(staticSub)))
+	mux.Handle("GET /static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// embedded files carry no modtime, so without this header browsers
+		// heuristically cache stale JS/CSS across deployments
+		w.Header().Set("Cache-Control", "no-cache, must-revalidate")
+		staticSrv.ServeHTTP(w, r)
+	}))
 	// space API
 	mux.HandleFunc("GET /api/spaces/{name}/state", s.apiState)
 	mux.HandleFunc("POST /api/spaces/{name}/unlock", s.apiUnlock)
