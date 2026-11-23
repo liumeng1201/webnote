@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebNote 云便签</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="home-wrap">
+  <div class="home-card">
+    <h1>📝 WebNote 云便签</h1>
+    <div class="sub">极简的在线数据暂存与传送工具。不用注册、不用登录，输入一个名字即可打开属于你的便签空间，在任何设备上同步文本、暂存文件。</div>
+    <form class="home-form" id="goForm">
+      <input type="text" id="nameInput" placeholder="输入便签名字，如 demo" autocomplete="off" maxlength="64">
+      <button class="primary" type="submit">打开便签</button>
+    </form>
+    <div class="home-tips">
+      · 也可以直接在地址栏访问 <code>/你的名字</code> 进入便签<br>
+      · 便签可设置访问密码，带密码的直达链接格式：<code>/名字@密码</code><br>
+      · 每个便签可建多个标签，内容自动保存；文件暂存 1–3 天后自动删除<br>
+      · 名字支持字母、数字、中文和 - _ . ，请避免使用过于简单的名字
+    </div>
+    <div class="home-foot"><a href="/admin">管理后台</a></div>
+  </div>
+</div>
+<script>
+document.getElementById('goForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var name = document.getElementById('nameInput').value.trim();
+  if(!name){ return; }
+  location.href = '/' + encodeURIComponent(name);
+});
+</script>
+</body>
+</html>

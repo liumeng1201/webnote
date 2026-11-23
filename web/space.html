@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebNote 云便签</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div id="unlockView" class="unlock-wrap hidden">
+  <div class="unlock-card">
+    <div style="font-size:34px">🔒</div>
+    <h2 style="margin:8px 0 2px" id="unlockName"></h2>
+    <div class="muted small">这个便签已设置访问密码</div>
+    <form id="unlockForm">
+      <input type="password" id="unlockPw" placeholder="请输入访问密码" autocomplete="current-password">
+      <button class="primary" type="submit">解锁</button>
+    </form>
+    <div id="unlockErr" class="small" style="color:var(--danger);margin-top:8px"></div>
+    <div style="margin-top:14px"><a href="/">← 返回首页</a></div>
+  </div>
+</div>
+
+<div id="mainView" class="space-wrap hidden">
+  <div class="topbar">
+    <a href="/" title="首页">🏠</a>
+    <span class="spacename" id="spaceName"></span>
+    <span class="badge ro hidden" id="roBadge">只读</span>
+    <span class="badge hidden" id="pwBadge">已加密</span>
+    <span class="spacer"></span>
+    <span class="muted small" id="saveStatus"></span>
+    <button id="filesBtn">📁 文件</button>
+    <button id="settingsBtn">⚙️ 设置</button>
+  </div>
+
+  <div id="filesPanel" class="panel hidden">
+    <h3>文件暂存 <span class="muted small">（到期自动删除，可手动删除；单文件上限 <span id="fileMaxHint"></span>）</span></h3>
+    <div class="file-drop" id="dropZone">
+      点击选择文件，或把文件拖到这里
+      <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap">
+        <label class="small muted">有效期
+          <select id="daysSel"><option value="1">1 天</option><option value="2">2 天</option><option value="3">3 天</option></select>
+        </label>
+        <input type="file" id="fileInput" multiple class="hidden">
+        <button id="pickBtn" class="primary">选择文件上传</button>
+      </div>
+    </div>
+    <div id="uploadList" style="margin-top:10px"></div>
+    <div id="fileList" style="margin-top:6px"></div>
+  </div>
+
+  <div id="settingsPanel" class="panel hidden">
+    <h3>便签设置</h3>
+    <div class="settings-grid">
+      <label>访问密码
+        <span style="display:flex;gap:6px">
+          <input type="password" id="pwInput" placeholder="输入新密码" autocomplete="new-password">
+          <button id="setPwBtn" class="primary">设置</button>
+          <button id="clearPwBtn" class="danger">清除密码</button>
+        </span>
+      </label>
+      <label class="checkline"><input type="checkbox" id="roChk"> 只读模式（所有人只能查看，不能修改）</label>
+    </div>
+    <div class="muted small" style="margin-top:10px">带密码的直达链接格式：<code id="directLink"></code>（把密码换成你的密码）</div>
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <div id="chips" style="display:flex;gap:6px;align-items:flex-end"></div>
+    <button id="newTabBtn">＋ 新标签</button>
+  </div>
+
+  <div class="title-row">
+    <input type="text" id="titleInput" placeholder="标题（选填，留空则取内容第一行）" maxlength="200">
+  </div>
+  <textarea id="editor" placeholder="在这里输入内容，会自动保存…"></textarea>
+</div>
+
+<div id="toast"></div>
+<script src="/static/space.js"></script>
+</body>
+</html>

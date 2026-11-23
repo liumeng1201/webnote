@@ -1,0 +1,10 @@
+# build output
+/webnote
+/webnote-bin
+*.exe
+
+# runtime data & config — never commit
+/data/
+config.json
+*.log
+backups/

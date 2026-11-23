@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebNote 管理后台</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="admin-wrap">
+  <div id="loginBox" class="admin-login hidden">
+    <h2 style="margin:0">管理员登录</h2>
+    <div class="muted small" style="margin-top:6px">输入部署时指定的管理员密码</div>
+    <form id="loginForm">
+      <input type="password" id="adminPw" placeholder="管理员密码" autocomplete="current-password">
+      <button class="primary" type="submit">进入后台</button>
+    </form>
+    <div id="loginErr" class="small" style="color:var(--danger);margin-top:8px"></div>
+  </div>
+
+  <div id="mainBox" class="hidden">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <h2 style="margin:0">WebNote 管理后台</h2>
+      <span class="muted small" id="summary"></span>
+      <span style="flex:1"></span>
+      <a href="/api/admin/backup"><button>⬇ 下载备份（仅便签数据）</button></a>
+      <button id="refreshBtn">刷新</button>
+      <button id="logoutBtn">退出</button>
+    </div>
+    <div id="spaceList"></div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="/static/admin.js"></script>
+</body>
+</html>
