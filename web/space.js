@@ -185,39 +185,81 @@ $('newTabBtn').addEventListener('click', newTab);
 function attachDrag(chip, id){
   chip.addEventListener('pointerdown', e => {
     if(S.readonly) return;
+    if(e.button !== undefined && e.button !== 0) return;
     if(e.target.closest('.x') || e.target.tagName === 'INPUT') return;
     const box = $('chips');
-    let startX = e.clientX, moved = false;
-    chip.setPointerCapture(e.pointerId);
+    const chips = [...box.querySelectorAll('.chip')];
+    const myIdx = chips.indexOf(chip);
+    if(myIdx < 0) return;
+    // Layout snapshot. During the gesture the dragged node is NEVER moved in
+    // the DOM (siblings only shift via transforms), so pointer capture stays
+    // stable; the real DOM reorder happens once, on release.
+    const GAP = 6;
+    const snap = chips.map(c => ({el: c, left: c.offsetLeft, width: c.offsetWidth, center: c.offsetLeft + c.offsetWidth / 2}));
+    const me = snap[myIdx];
+    const minDx = snap[0].left - me.left;
+    const maxDx = (snap[snap.length - 1].left + snap[snap.length - 1].width) - (me.left + me.width);
+    const startX = e.clientX;
+    let moved = false, target = myIdx, finished = false;
+    try { chip.setPointerCapture(e.pointerId); } catch(err) {}
+    const shiftFor = i => {
+      if(i === myIdx) return '';
+      const shift = me.width + GAP;
+      if(target < myIdx && i >= target && i < myIdx) return 'translateX(' + shift + 'px)';
+      if(target > myIdx && i > myIdx && i <= target) return 'translateX(' + (-shift) + 'px)';
+      return '';
+    };
     const onMove = ev => {
-      const dx = ev.clientX - startX;
+      let dx = ev.clientX - startX;
       if(!moved && Math.abs(dx) > 6){ moved = true; chip.classList.add('dragging'); }
       if(!moved) return;
+      dx = Math.max(minDx, Math.min(maxDx, dx));
       chip.style.transform = 'translateX(' + dx + 'px)';
-      const siblings = [...box.querySelectorAll('.chip:not(.dragging)')];
-      for(const sib of siblings){
-        const rect = sib.getBoundingClientRect();
-        const center = rect.left + rect.width/2;
-        const chips = [...box.querySelectorAll('.chip')];
-        const idx = chips.indexOf(chip), sidx = chips.indexOf(sib);
-        if(ev.clientX < center && idx > sidx){ box.insertBefore(chip, sib); startX -= (sib.offsetWidth + 6); break; }
-        if(ev.clientX > center && idx < sidx){ box.insertBefore(chip, sib.nextSibling); startX += (sib.offsetWidth + 6); break; }
+      const myCenter = me.center + dx;
+      target = myIdx;
+      for(let i = 0; i < snap.length; i++){
+        if(i === myIdx) continue;
+        if(i < myIdx && myCenter < snap[i].center) target = Math.min(target, i);
+        if(i > myIdx && myCenter > snap[i].center) target = Math.max(target, i);
+      }
+      for(let i = 0; i < snap.length; i++){
+        if(i !== myIdx) snap[i].el.style.transform = shiftFor(i);
       }
     };
-    const onUp = async ev => {
+    const cleanup = () => {
+      for(const s of snap){ s.el.classList.add('noanim'); s.el.style.transform = ''; }
+      chip.classList.remove('dragging');
+      void box.offsetWidth; // reflow so clearing transforms is not animated
+      for(const s of snap) s.el.classList.remove('noanim');
+    };
+    const detach = () => {
       chip.removeEventListener('pointermove', onMove);
       chip.removeEventListener('pointerup', onUp);
-      chip.removeEventListener('pointercancel', onUp);
-      chip.classList.remove('dragging'); chip.style.transform = '';
-      if(!moved){ selectTab(id); return; }
-      const order = [...box.querySelectorAll('.chip')].map(c=>c.dataset.id);
-      S.tabs.sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
-      const {res, data} = await api('/tabs/order', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({order})});
-      if(!res.ok) toast((data && data.error) || '排序保存失败');
+      chip.removeEventListener('pointercancel', onCancel);
+    };
+    const onUp = async () => {
+      if(finished) return; finished = true;
+      detach();
+      if(!moved){ cleanup(); selectTab(id); return; }
+      const from = myIdx, to = target;
+      cleanup();
+      if(to !== from){
+        const ref = to < from ? chips[to] : chips[to].nextSibling;
+        box.insertBefore(chip, ref);
+        const order = [...box.querySelectorAll('.chip')].map(c => c.dataset.id);
+        S.tabs.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+        const {res, data} = await api('/tabs/order', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({order})});
+        if(!res.ok){ toast((data && data.error) || '排序保存失败'); renderChips(); }
+      }
+    };
+    const onCancel = () => {
+      if(finished) return; finished = true;
+      detach();
+      cleanup();
     };
     chip.addEventListener('pointermove', onMove);
     chip.addEventListener('pointerup', onUp);
-    chip.addEventListener('pointercancel', onUp);
+    chip.addEventListener('pointercancel', onCancel);
   });
 }
 

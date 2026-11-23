@@ -41,9 +41,10 @@ input[type=text]:focus,input[type=password]:focus,select:focus{border-color:var(
 .badge.ro{background:#fef3c7;color:#92400e}
 #saveStatus{min-width:86px;text-align:right}
 .tabbar{display:flex;align-items:flex-end;gap:6px;padding:8px 12px 0;background:var(--card);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:thin}
-.chip{display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;background:#f3f4f6;white-space:nowrap;max-width:220px;cursor:pointer;user-select:none;touch-action:none;position:relative}
+.chip{display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;background:#f3f4f6;white-space:nowrap;max-width:220px;cursor:pointer;user-select:none;touch-action:none;position:relative;transition:transform .18s ease}
 .chip.active{background:#fff;border-color:var(--line);font-weight:600;box-shadow:0 -2px 8px rgba(31,36,48,.04)}
-.chip.dragging{opacity:.75;z-index:5;box-shadow:0 6px 18px rgba(31,36,48,.18)}
+.chip.dragging{opacity:.85;z-index:5;box-shadow:0 6px 18px rgba(31,36,48,.18);transition:none}
+.chip.noanim{transition:none!important}
 .chip .label{overflow:hidden;text-overflow:ellipsis;max-width:170px}
 .chip .x{color:var(--muted);border:none;background:none;padding:0 2px;font-size:14px;line-height:1}
 .chip .x:hover{color:var(--danger)}
