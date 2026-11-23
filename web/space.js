@@ -214,12 +214,16 @@ function attachDrag(chip, id){
       return '';
     };
     const onMove = ev => {
-      let dx = ev.clientX - startX;
-      if(!moved && Math.abs(dx) > 6){ moved = true; chip.classList.add('dragging'); }
+      const rawDx = ev.clientX - startX;
+      if(!moved && Math.abs(rawDx) > 6){ moved = true; chip.classList.add('dragging'); }
       if(!moved) return;
-      dx = Math.max(minDx, Math.min(maxDx, dx));
+      // The chip's visual travel is clamped to the strip, but the target
+      // slot follows the UNclamped pointer: with a center grab, a clamped
+      // pointer could never pass the last chip's center, so the end slot
+      // would be unreachable.
+      const dx = Math.max(minDx, Math.min(maxDx, rawDx));
       chip.style.transform = 'translateX(' + dx + 'px)';
-      const pointX = grabPoint + dx;
+      const pointX = grabPoint + rawDx;
       target = myIdx;
       for(let i = 0; i < snap.length; i++){
         if(i === myIdx) continue;
