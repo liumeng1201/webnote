@@ -199,6 +199,10 @@ function attachDrag(chip, id){
     const me = snap[myIdx];
     const minDx = snap[0].left - me.left;
     const maxDx = (snap[snap.length - 1].left + snap[snap.length - 1].width) - (me.left + me.width);
+    // Target slot is decided by where the pointer itself is (the exact grab
+    // point), not the dragged chip's center: grabbing a chip by its edge
+    // would otherwise lag a full step behind the user's intent.
+    const grabPoint = me.left + (e.clientX - chip.getBoundingClientRect().left);
     const startX = e.clientX;
     let moved = false, target = myIdx, finished = false;
     try { chip.setPointerCapture(e.pointerId); } catch(err) {}
@@ -215,12 +219,12 @@ function attachDrag(chip, id){
       if(!moved) return;
       dx = Math.max(minDx, Math.min(maxDx, dx));
       chip.style.transform = 'translateX(' + dx + 'px)';
-      const myCenter = me.center + dx;
+      const pointX = grabPoint + dx;
       target = myIdx;
       for(let i = 0; i < snap.length; i++){
         if(i === myIdx) continue;
-        if(i < myIdx && myCenter < snap[i].center) target = Math.min(target, i);
-        if(i > myIdx && myCenter > snap[i].center) target = Math.max(target, i);
+        if(i < myIdx && pointX < snap[i].center) target = Math.min(target, i);
+        if(i > myIdx && pointX > snap[i].center) target = Math.max(target, i);
       }
       for(let i = 0; i < snap.length; i++){
         if(i !== myIdx) snap[i].el.style.transform = shiftFor(i);
