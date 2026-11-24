@@ -829,6 +829,13 @@ input[type=text]:focus,input[type=password]:focus,select:focus{
   flex-direction:column;
   gap:6px;
 }
+.danger-zone{
+  background:var(--danger-soft);
+  border:1px solid #fecaca;
+  border-radius:10px;
+  padding:12px 14px;
+}
+.danger-zone .setting-label{color:var(--danger-d)}
 .setting-label{
   font-size:13px;
   font-weight:500;

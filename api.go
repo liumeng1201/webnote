@@ -66,6 +66,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /api/spaces/{name}/password", s.apiSetPassword)
 	mux.HandleFunc("POST /api/spaces/{name}/readonly", s.apiSetReadonly)
 	mux.HandleFunc("PUT /api/spaces/{name}/settings", s.apiSettings)
+	mux.HandleFunc("DELETE /api/spaces/{name}", s.apiDeleteSpace)
 	mux.HandleFunc("POST /api/spaces/{name}/tabs", s.apiCreateTab)
 	mux.HandleFunc("PUT /api/spaces/{name}/tabs/{id}", s.apiSaveTab)
 	mux.HandleFunc("DELETE /api/spaces/{name}/tabs/{id}", s.apiDeleteTab)
@@ -536,6 +537,27 @@ func (s *Server) apiSettings(w http.ResponseWriter, r *http.Request) {
 		s.setSpaceCookie(w, sp.Name) // keep the owner logged in
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "has_password": sp.PasswordHash != "", "readonly": sp.Readonly})
+}
+
+// apiDeleteSpace lets a space's own user delete the whole space from the
+// space page (the admin backend has the same capability via DeleteSpace).
+// A password-protected space must be unlocked first. Deletion is permanent:
+// the space file and all staged file blobs are removed.
+func (s *Server) apiDeleteSpace(w http.ResponseWriter, r *http.Request) {
+	sp, ok := s.resolveSpace(w, r)
+	if !ok {
+		return
+	}
+	defer s.store.mu.Unlock()
+	if !s.requireUnlocked(w, r, sp) {
+		return
+	}
+	if err := s.store.DeleteSpace(sp.Name); err != nil {
+		writeErr(w, http.StatusInternalServerError, "删除失败")
+		return
+	}
+	http.SetCookie(w, &http.Cookie{Name: spaceCookieName(sp.Name), Value: "", Path: "/", MaxAge: -1})
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
 func (s *Server) apiCreateTab(w http.ResponseWriter, r *http.Request) {

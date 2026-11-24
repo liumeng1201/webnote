@@ -453,11 +453,29 @@ dz.addEventListener('dragleave', () => dz.classList.remove('over'));
 dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); uploadFiles(e.dataTransfer.files); });
 
 /* ---------- settings modal ---------- */
-function openSettings(){ $('settingsPanel').classList.remove('hidden'); }
+function openSettings(){
+  $('delNameInput').value = '';
+  $('delSpaceBtn').disabled = true;
+  $('settingsPanel').classList.remove('hidden');
+}
 function closeSettings(){ $('settingsPanel').classList.add('hidden'); }
 $('settingsBtn').addEventListener('click', openSettings);
 $('settingsCloseBtn').addEventListener('click', closeSettings);
 $('settingsPanel').addEventListener('click', e => { if(e.target === $('settingsPanel')) closeSettings(); });
+
+/* ---------- delete this space (type the space name to confirm) ---------- */
+$('delSpaceName').textContent = spaceName;
+$('delNameInput').addEventListener('input', e => {
+  $('delSpaceBtn').disabled = e.target.value.trim() !== spaceName;
+});
+$('delSpaceBtn').addEventListener('click', async () => {
+  if($('delNameInput').value.trim() !== spaceName) return;
+  $('delSpaceBtn').disabled = true;
+  const {res, data} = await api('', {method:'DELETE'});
+  if(res.ok){ location.href = '/'; return; }
+  toast((data && data.error) || '删除失败');
+  $('delSpaceBtn').disabled = false;
+});
 
 $('setPwBtn').addEventListener('click', async () => {
   const pw = $('pwInput').value;
