@@ -4,79 +4,240 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WebNote 云便签</title>
-<link rel="stylesheet" href="/static/style.css?v=5">
+<link rel="stylesheet" href="/static/style.css?v=6">
 </head>
 <body>
 
 <div id="unlockView" class="unlock-wrap hidden">
   <div class="unlock-card">
-    <div style="font-size:34px">🔒</div>
-    <h2 style="margin:8px 0 2px" id="unlockName"></h2>
+    <div class="unlock-icon" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </div>
+    <h2 class="unlock-title" id="unlockName"></h2>
     <div class="muted small">这个便签已设置访问密码</div>
     <form id="unlockForm">
       <input type="password" id="unlockPw" placeholder="请输入访问密码" autocomplete="current-password">
-      <button class="primary" type="submit">解锁</button>
+      <button class="primary" type="submit">解锁便签</button>
     </form>
-    <div id="unlockErr" class="small" style="color:var(--danger);margin-top:8px"></div>
-    <div style="margin-top:14px"><a href="/">← 返回首页</a></div>
+    <div id="unlockErr" class="small unlock-err"></div>
+    <div class="unlock-back"><a href="/">← 返回首页</a></div>
   </div>
 </div>
 
 <div id="mainView" class="space-wrap hidden">
-  <div class="topbar">
-    <a href="/" title="首页">🏠</a>
-    <span class="spacename" id="spaceName"></span>
-    <span class="badge ro hidden" id="roBadge">只读</span>
-    <span class="badge hidden" id="pwBadge">已加密</span>
-    <span class="spacer"></span>
-    <span class="muted small" id="saveStatus"></span>
-    <button id="filesBtn">📁 文件</button>
-    <button id="settingsBtn">⚙️ 设置</button>
-  </div>
-
-  <div id="filesPanel" class="panel hidden">
-    <h3>文件暂存 <span class="muted small">（到期自动删除，可手动删除；单文件上限 <span id="fileMaxHint"></span>）</span></h3>
-    <div class="file-drop" id="dropZone">
-      点击选择文件，或把文件拖到这里
-      <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap">
-        <label class="small muted">有效期
-          <select id="daysSel"><option value="1">1 天</option><option value="2">2 天</option><option value="3">3 天</option></select>
-        </label>
-        <input type="file" id="fileInput" multiple class="hidden">
-        <button id="pickBtn" class="primary">选择文件上传</button>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/" class="brand-link" title="返回首页">
+        <span class="brand-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="8" y1="13" x2="16" y2="13"></line>
+            <line x1="8" y1="17" x2="13" y2="17"></line>
+          </svg>
+        </span>
+        <span class="spacename" id="spaceName"></span>
+      </a>
+      <span class="v-sep" aria-hidden="true"></span>
+      <div class="status-group">
+        <span class="pill pill-green hidden" id="pwBadge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          已保护
+        </span>
+        <span class="pill pill-amber hidden" id="roBadge">只读</span>
+        <span class="pill pill-neutral" id="saveStatus"></span>
       </div>
     </div>
-    <div id="uploadList" style="margin-top:10px"></div>
-    <div id="fileList" style="margin-top:6px"></div>
-  </div>
 
-  <div id="settingsPanel" class="panel hidden">
-    <h3>便签设置</h3>
-    <div class="settings-grid">
-      <label>访问密码
-        <span style="display:flex;gap:6px">
-          <input type="password" id="pwInput" placeholder="输入新密码" autocomplete="new-password">
-          <button id="setPwBtn" class="primary">设置</button>
-          <button id="clearPwBtn" class="danger">清除密码</button>
-        </span>
-      </label>
-      <label class="checkline"><input type="checkbox" id="roChk"> 只读模式（所有人只能查看，不能修改）</label>
+    <div class="topbar-right">
+      <button type="button" class="icon-btn mobile-only" id="mobileSidebarBtn" title="展开侧边栏">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          <line x1="15" y1="3" x2="15" y2="21"></line>
+        </svg>
+        <span class="btn-text">工具栏</span>
+      </button>
+      <button type="button" class="icon-btn" id="settingsBtn" title="便签设置">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="btn-text">设置</span>
+      </button>
+      <span class="v-sep" aria-hidden="true"></span>
+      <button type="button" class="primary icon-btn save-btn" id="saveBtn" title="保存 (Ctrl+S)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        <span>保存</span>
+      </button>
     </div>
-    <div class="muted small" style="margin-top:10px">带密码的直达链接格式：<code id="directLink"></code>（把密码换成你的密码）</div>
+  </header>
+
+  <div class="workspace">
+    <main class="editor-pane">
+      <div class="tabbar" id="tabbar">
+        <div class="tabbar-scroll">
+          <div id="chips" class="chips-strip"></div>
+          <button type="button" id="newTabBtn" class="new-tab-btn" title="新建便签页">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+        <button type="button" id="sidebarToggleBtn" class="collapse-btn" title="收起/展开侧边栏" aria-label="收起或展开侧边栏">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="13 17 18 12 13 7"></polyline>
+            <polyline points="6 17 11 12 6 7"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <div class="title-row">
+        <input type="text" id="titleInput" placeholder="无标题便签（选填，留空则自动取内容首行）" maxlength="200">
+      </div>
+
+      <div class="editor-body">
+        <button type="button" id="clearEditorBtn" class="editor-clear-btn" title="清空当前内容" aria-label="清空当前内容">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 20H7L3 16c-.8-.8-.8-2 0-2.8L13.4 2.8c.8-.8 2-.8 2.8 0l5 5c.8.8.8 2 0 2.8L11.8 20"></path>
+            <path d="M6 11l7 7"></path>
+          </svg>
+        </button>
+        <textarea id="editor" placeholder="在这里输入内容，支持自动保存或点击右上角保存..."></textarea>
+        <div class="editor-stats-pill" id="editorStats">0 行 · 0 字符</div>
+      </div>
+    </main>
+
+    <div id="sidebarBackdrop" class="sidebar-backdrop hidden"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-actions">
+        <button type="button" class="side-action-btn" id="copyNoteBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>复制</span>
+        </button>
+        <button type="button" class="side-action-btn" id="downloadNoteBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>下载</span>
+        </button>
+      </div>
+
+      <section class="side-card stats-card">
+        <div class="side-card-head">
+          <span class="side-card-title">统计信息</span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-val" id="statTabs">0</div>
+            <div class="stat-label">便签页</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="statLines">0</div>
+            <div class="stat-label">行数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="statChars">0</div>
+            <div class="stat-label">字符</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="side-card files-card" id="filesPanel">
+        <div class="side-card-head">
+          <span class="side-card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+            文件传输
+          </span>
+          <span class="pill pill-blue" id="fileCountBadge">0</span>
+        </div>
+        <div class="files-hint">到期自动删除，可手动删除 · 上限 <span id="fileMaxHint">-</span></div>
+
+        <div class="file-drop" id="dropZone">
+          <div class="drop-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 16 12 12 8 16"></polyline>
+              <line x1="12" y1="12" x2="12" y2="21"></line>
+              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+            </svg>
+          </div>
+          <div class="drop-text">拖拽文件到此处，或点击上传</div>
+          <div class="drop-controls">
+            <label class="days-label">
+              <span>保留</span>
+              <select id="daysSel">
+                <option value="1">1 天</option>
+                <option value="2">2 天</option>
+                <option value="3">3 天</option>
+              </select>
+            </label>
+            <input type="file" id="fileInput" multiple class="hidden">
+            <button type="button" id="pickBtn" class="primary sm-btn">选择文件</button>
+          </div>
+        </div>
+
+        <div id="uploadList" class="upload-list"></div>
+        <div id="fileList" class="file-list"></div>
+      </section>
+    </aside>
   </div>
 
-  <div class="tabbar" id="tabbar">
-    <div id="chips" style="display:flex;gap:6px;align-items:flex-end"></div>
-    <button id="newTabBtn">＋ 新标签</button>
-  </div>
+  <div id="settingsPanel" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="settingsTitle">便签设置</h3>
+        <button type="button" class="modal-close" id="settingsCloseBtn" aria-label="关闭设置">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-block">
+          <label class="setting-label" for="pwInput">访问密码</label>
+          <div class="setting-row">
+            <input type="password" id="pwInput" placeholder="输入新密码" autocomplete="new-password">
+            <button type="button" id="setPwBtn" class="primary">设置</button>
+            <button type="button" id="clearPwBtn" class="danger">清除</button>
+          </div>
+        </div>
 
-  <div class="title-row">
-    <input type="text" id="titleInput" placeholder="标题（选填，留空则取内容第一行）" maxlength="200">
+        <div class="setting-block">
+          <label class="checkline">
+            <input type="checkbox" id="roChk">
+            <span>只读模式（所有人只能查看，不能修改）</span>
+          </label>
+        </div>
+
+        <div class="setting-block direct-link-box">
+          <div class="setting-label">带密码直达链接格式</div>
+          <code id="directLink"></code>
+          <div class="muted tiny">把链接末尾的「你的密码」替换为实际访问密码即可直达</div>
+        </div>
+      </div>
+    </div>
   </div>
-  <textarea id="editor" placeholder="在这里输入内容，会自动保存…"></textarea>
 </div>
 
 <div id="toast"></div>
-<script src="/static/space.js?v=5"></script>
+<script src="/static/space.js?v=6"></script>
 </body>
 </html>
