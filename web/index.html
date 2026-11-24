@@ -4,26 +4,86 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WebNote 云便签</title>
-<link rel="stylesheet" href="/static/style.css?v=5">
+<link rel="stylesheet" href="/static/style.css?v=7">
 </head>
-<body>
-<div class="home-wrap">
-  <div class="home-card">
-    <h1>📝 WebNote 云便签</h1>
-    <div class="sub">极简的在线数据暂存与传送工具。不用注册、不用登录，输入一个名字即可打开属于你的便签空间，在任何设备上同步文本、暂存文件。</div>
-    <form class="home-form" id="goForm">
-      <input type="text" id="nameInput" placeholder="输入便签名字，如 demo" autocomplete="off" maxlength="64">
-      <button class="primary" type="submit">打开便签</button>
-    </form>
-    <div class="home-tips">
-      · 也可以直接在地址栏访问 <code>/你的名字</code> 进入便签<br>
-      · 便签可设置访问密码，带密码的直达链接格式：<code>/名字@密码</code><br>
-      · 每个便签可建多个标签，内容自动保存；文件暂存 1–3 天后自动删除<br>
-      · 名字支持字母、数字、中文和 - _ . ，请避免使用过于简单的名字
-    </div>
-    <div class="home-foot"><a href="/admin">管理后台</a></div>
+<body class="page-home">
+
+<header class="topbar">
+  <div class="topbar-left">
+    <a href="/" class="brand-link">
+      <span class="brand-icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="8" y1="13" x2="16" y2="13"></line>
+          <line x1="8" y1="17" x2="13" y2="17"></line>
+        </svg>
+      </span>
+      <span class="spacename">WebNote 云便签</span>
+    </a>
   </div>
-</div>
+  <div class="topbar-right">
+    <a href="/admin" class="nav-link-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      </svg>
+      <span>管理后台</span>
+    </a>
+  </div>
+</header>
+
+<main class="home-wrap">
+  <div class="home-card">
+    <div class="home-hero">
+      <div class="home-brand-badge" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="8" y1="13" x2="16" y2="13"></line>
+          <line x1="8" y1="17" x2="13" y2="17"></line>
+        </svg>
+      </div>
+      <div>
+        <h1>WebNote 云便签</h1>
+        <div class="sub">极简的在线数据暂存与传送工具。无需注册或登录，输入空间名即可跨设备同步文本与暂存文件。</div>
+      </div>
+    </div>
+
+    <form class="home-form" id="goForm">
+      <div class="home-input-wrap">
+        <span class="home-input-prefix" aria-hidden="true">/</span>
+        <input type="text" id="nameInput" placeholder="输入便签名字，如 demo" autocomplete="off" maxlength="64" autofocus>
+      </div>
+      <button class="primary icon-btn home-submit-btn" type="submit">
+        <span>打开便签</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+    </form>
+
+    <div class="home-tips">
+      <div class="home-tip-item">
+        <span class="tip-dot" aria-hidden="true"></span>
+        <span>直接在地址栏访问 <code>/你的名字</code> 即可进入对应便签空间</span>
+      </div>
+      <div class="home-tip-item">
+        <span class="tip-dot" aria-hidden="true"></span>
+        <span>支持设置访问密码，带密码直达链接格式：<code>/名字@密码</code></span>
+      </div>
+      <div class="home-tip-item">
+        <span class="tip-dot" aria-hidden="true"></span>
+        <span>支持多标签拖拽排序与自动保存，暂存文件 1–3 天后自动清理</span>
+      </div>
+      <div class="home-tip-item">
+        <span class="tip-dot" aria-hidden="true"></span>
+        <span>名称支持字母、数字、中文和 <code>- _ .</code>，请避免使用过于简单的名称</span>
+      </div>
+    </div>
+  </div>
+</main>
+
 <script>
 document.getElementById('goForm').addEventListener('submit', function(e){
   e.preventDefault();
