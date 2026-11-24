@@ -65,6 +65,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /api/spaces/{name}/unlock", s.apiUnlock)
 	mux.HandleFunc("POST /api/spaces/{name}/password", s.apiSetPassword)
 	mux.HandleFunc("POST /api/spaces/{name}/readonly", s.apiSetReadonly)
+	mux.HandleFunc("PUT /api/spaces/{name}/settings", s.apiSettings)
 	mux.HandleFunc("POST /api/spaces/{name}/tabs", s.apiCreateTab)
 	mux.HandleFunc("PUT /api/spaces/{name}/tabs/{id}", s.apiSaveTab)
 	mux.HandleFunc("DELETE /api/spaces/{name}/tabs/{id}", s.apiDeleteTab)
@@ -489,6 +490,52 @@ func (s *Server) apiSetReadonly(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "readonly": sp.Readonly})
+}
+
+// apiSettings is the combined settings endpoint used by the two-column UI:
+// one PUT may set a new password, clear it, and/or toggle readonly.
+// The older /password and /readonly POST endpoints remain for compatibility.
+func (s *Server) apiSettings(w http.ResponseWriter, r *http.Request) {
+	sp, ok := s.resolveSpace(w, r)
+	if !ok {
+		return
+	}
+	defer s.store.mu.Unlock()
+	if !s.requireUnlocked(w, r, sp) {
+		return
+	}
+	var body struct {
+		Password      *string `json:"password"`
+		ClearPassword bool    `json:"clear_password"`
+		Readonly      *bool   `json:"readonly"`
+	}
+	if !readBodyJSON(w, r, &body, 1<<20) {
+		return
+	}
+	if body.ClearPassword {
+		sp.PasswordHash = ""
+	} else if body.Password != nil {
+		if utf8.RuneCountInString(*body.Password) > 128 {
+			writeErr(w, http.StatusBadRequest, "密码过长")
+			return
+		}
+		if *body.Password == "" {
+			sp.PasswordHash = ""
+		} else {
+			sp.PasswordHash = hashSecret(*body.Password)
+		}
+	}
+	if body.Readonly != nil {
+		sp.Readonly = *body.Readonly
+	}
+	if err := s.store.SaveSpace(sp); err != nil {
+		writeErr(w, http.StatusInternalServerError, "保存失败")
+		return
+	}
+	if sp.PasswordHash != "" {
+		s.setSpaceCookie(w, sp.Name) // keep the owner logged in
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "has_password": sp.PasswordHash != "", "readonly": sp.Readonly})
 }
 
 func (s *Server) apiCreateTab(w http.ResponseWriter, r *http.Request) {
